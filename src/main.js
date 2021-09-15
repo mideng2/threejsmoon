@@ -116,7 +116,7 @@ var cubeMaterial = new THREE.MeshLambertMaterial({ color: 0xAFEEEE, transparent:
 function addCube() {
   var radius = Math.random() * 0.3
   // var cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize)
-  var cubeGeometry = new THREE.SphereGeometry( radius )
+  var cubeGeometry = new THREE.SphereGeometry( radius, 32, 16 )
 
   var cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
   cube.castShadow = true
