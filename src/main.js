@@ -4,8 +4,9 @@
 // createApp(App).mount('#app')
 
 //设置场景的大小
-var width = 400;
-var height = 300;
+var width = window.innerWidth;
+var height = window.innerHeight;
+var numberOfObjects = 500
 //创建场景
 var scene = new THREE.Scene();
 //设置相机（视野，显示口的宽高比，近裁剪面，远裁剪面）
@@ -22,11 +23,8 @@ camera.position.z = 100;
 //把相机添加到场景里面
 scene.add(camera);
 
-
-//盒子模型（BoxGeometry），这是一个包含立方体所有顶点和填充面的对象。
-// var geometry = new THREE.BoxGeometry( 2, 2, 2 );
 // 球形
-const geometry = new THREE.SphereGeometry( 50, 32, 16 );
+const geometry = new THREE.SphereGeometry( 10, 32, 16 );
 //使用网孔基础材料（MeshBasicMaterial）进行着色器，这里只绘制了一个绿色
 // var material = new THREE.MeshLambertMaterial( { color: 0xFFF000 } );
 // MeshLambertMaterial 这种材质可以用来创建暗淡的并不光亮的表面
@@ -38,20 +36,10 @@ var map = THREE.ImageUtils.loadTexture("src/assets/moon6.png");
 var material = new THREE.MeshPhongMaterial({map: map});
 
 //使用网孔(Mesh)来承载几何模型
-var cube = new THREE.Mesh( geometry, material );
+var sphere = new THREE.Mesh( geometry, material );
 //将模型添加到场景当中
-scene.add( cube );
+scene.add( sphere );
 
-
-// 线
-// const lineMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
-// const points = [];
-// points.push( new THREE.Vector3( - 10, 0, 0 ) );
-// points.push( new THREE.Vector3( 0, 10, 0 ) );
-// points.push( new THREE.Vector3( 10, 0, 0 ) );
-// const lineGeometry = new THREE.BufferGeometry().setFromPoints( points );
-// const line = new THREE.Line( lineGeometry, lineMaterial );
-// scene.add(line);
 
 // 点光
 var pointLight = new THREE.PointLight(0XFFFFFF, 1, 2000);
@@ -69,121 +57,80 @@ const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
 scene.add( directionalLight );
 
 
-// //设置一个动画函数
-// var animate = function () {
-//     //一秒钟调用60次，也就是以每秒60帧的频率来绘制场景。
-//     requestAnimationFrame( animate );
+//用户交互插件 鼠标左键按住旋转，右键按住平移，滚轮缩放
+var controls,clock;
+function initControls() {
+  controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-//     //console.log(cube.rotation);
-//     //每次调用模型的沿xy轴旋转0.01
-//     cube.rotation.x += 0.01;
-//     cube.rotation.y += 0.01;
-//     //使用渲染器把场景和相机都渲染出来
-//     renderer.render(scene, camera);
-// };
+  // 如果使用animate方法时，将此函数删除
+  //controls.addEventListener( 'change', render );
+  // 使动画循环使用时阻尼或自转 意思是否有惯性
+  controls.enableDamping = true;
+  //动态阻尼系数 就是鼠标拖拽旋转灵敏度
+  //controls.dampingFactor = 0.25;
+  //是否可以缩放
+  controls.enableZoom = true;
+  //是否自动旋转
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.2;
+  //设置相机距离原点的最远距离
+  controls.minDistance  = 1;
+  //设置相机距离原点的最远距离
+  controls.maxDistance  = 200;
+  //是否开启右键拖拽
+  controls.enablePan = true;
+}
 
-// animate();
-cube.rotation.y = 180;
-cube.rotation.z = 0;
 
+sphere.rotation.y = 180;
+sphere.rotation.z = 0;
+let rotationBool = true
 let step = 1
 var animate = function () {
-  //一秒钟调用60次，也就是以每秒60帧的频率来绘制场景。
   requestAnimationFrame( animate );
-  
-  // if ( pointLight.position.x > 180) {
-  //   step = 1
-  // } else if ( pointLight.position.x < -180) {
-  //   step = -1
-  // }
-  // pointLight.position.x -= step;
-  
   //每次调用模型的沿xy轴旋转0.01
-  cube.rotation.y += 0.005;
-  // cube.rotation.y += 0.005;
-  //使用渲染器把场景和相机都渲染出来
+  if (!rotationBool) {
+    return
+  }
+  // sphere.rotation.y += 0.001;
+  //使用渲染器把场景和相机都渲染出来？？加上这个转的特别快
+  controls.update();
   renderer.render(scene, camera);
 };
 
-animate();
+
+drawStars()
+initControls()
+animate()
+
+
+document.body.onclick = function () {
+  rotationBool = !rotationBool
+}
 
 
 
-//  //设置场景的大小
-//  var width = 400;
-//  var height = 300;
 
-//  //设置相机的一些参数。
-//  var view_angle = 45;
-//  var aspect = width / height;
-//  var near = 0.1;
-//  var far = 10000;
+//创建立方体的方法
+var cubeMaterial = new THREE.MeshLambertMaterial({ color: 0xAFEEEE, transparent: true, opacity: Math.random() })
+function addCube() {
+  var radius = Math.random() * 0.3
+  // var cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize)
+  var cubeGeometry = new THREE.SphereGeometry( radius )
 
-//  //设置容器
-//  var $container = document.querySelector('#container')
+  var cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+  cube.castShadow = true
 
-//  //新建一个WebGL 渲染，以及相机
-//  var renderer = new THREE.WebGLRenderer();
-//  var camera =
-//      new THREE.PerspectiveCamera(
-//      view_angle, aspect, near, far
-//      );
-//  var scene = new THREE.Scene();
+  cube.position.x = -100 + Math.round(Math.random() * 200)
+  cube.position.y = -100 + Math.round(Math.random() * 200)
+  cube.position.z = -100 + Math.round(Math.random() * 200)
 
-//  //把相机添加到场景里面
-//  scene.add(camera);
+  return cube
+}
 
-//  camera.position.z = 300;
 
-//  renderer.setSize(width, height);
-
-//  //附加DOM元素
-//  $container.append(renderer.domElement);
-
-//  //设置球体的值
-//  var radius = 50, segemnt = 16, rings = 16;
-
-//  var sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xFFF000 });
-
-//  var sphere = new THREE.Mesh(
-//      new THREE.SphereGeometry(radius,segemnt,rings),
-//      sphereMaterial
-//      );
-
-//  sphere.geometry.verticesNeedUpdate = true;
-//  sphere.geometry.normalsNeedUpdate = true;
-
-//  scene.add(sphere);
-
-//  var pointLight = new THREE.PointLight(0xFFFFFF);
-
-//  pointLight.position.x = 0;
-//  pointLight.position.y = 50;
-//  pointLight.position.z = 150;
-
-//  scene.add(pointLight);
-
-  
-//  //画图
-// //  renderer.render(scene, camera);
-
-// let step = 1
-//  var animate = function () {
-//     //一秒钟调用60次，也就是以每秒60帧的频率来绘制场景。
-//     requestAnimationFrame( animate );
-    
-//     if ( pointLight.position.x > 180) {
-//       step = 1
-//     } else if ( pointLight.position.x < -180) {
-//       step = -1
-//     }
-//     pointLight.position.x -= step;
-//     //console.log(cube.rotation);
-//     //每次调用模型的沿xy轴旋转0.01
-//     // cube.rotation.x += 0.01;
-//     // cube.rotation.y += 0.01;
-//     //使用渲染器把场景和相机都渲染出来
-//     renderer.render(scene, camera);
-// };
-
-// animate();
+function drawStars(){
+  for (var i = 0; i < numberOfObjects; i++) {
+    scene.add(addCube())
+  }
+}
